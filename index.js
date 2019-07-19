@@ -1,9 +1,10 @@
-function latest(fn, prev={}) {
-	let invocations = prev.invocations || {current: 0};
+function guard(fn, rules={}) {
+	let calls = rules.calls || {current: 0};
+	let lastCallFinished = rules.lastCallFinished || {current: 0};
 	
 	return function () {
 		try {
-			const invocationsAtStart = prev.invocationsAtStart || {current: ++invocations.current};
+			const callsAtStart = rules.callsAtStart || {current: ++calls.current};
 
 			const result = fn.apply(this, arguments);
 		
@@ -11,27 +12,41 @@ function latest(fn, prev={}) {
 				let cb, errorCb;
 				const proxyPromise = new Promise((res, rej) => {
 					cb = function(x) {
-						if (invocations.current === invocationsAtStart.current) res(x);
+						if (rules.latest && calls.current !== callsAtStart.current) return;
+						res(x);
 					};
 					errorCb = function(x) {
-						if (invocations.current === invocationsAtStart.current) rej(x);
+						if (rules.latest && calls.current === callsAtStart.current) return;
+						rej(x);
 					};
 				});
 		
-				result.then(cb);
-				result.catch(errorCb);
+				result.then(cb, errorCb);
 				return proxyPromise;
 			}
 			
 			if (typeof result === "function") {
-				return latest(result, { invocations, invocationsAtStart });
+				return guard(result, Object.assign({
+					calls,
+					callsAtStart,
+					lastCallFinished
+				}, rules));
 			}
 
+			lastCallFinished = callsAtStart;
 			return Promise.resolve(result);
 		} catch (e) {
 			return Promise.reject(e);
 		}
 	}
+}
+
+function latest(fn) {
+	return guard(fn, { latest: true });
+}
+
+function first(fn) {
+	return guard(fn, { first: true });
 }
 
 const fn = function(a) {

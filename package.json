@@ -1,6 +1,6 @@
 {
-  "name": "async-guard",
-  "version": "1.0.0",
+  "name": "async-guards",
+  "version": "0.1.0",
   "description": "",
   "main": "index.js",
   "dependencies": {},
@@ -17,12 +17,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kasvtv/async-guard.git"
+    "url": "git+https://github.com/kasvtv/async-guards.git"
   },
   "author": "Kas van 't Veer",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/kasvtv/async-guard/issues"
+    "url": "https://github.com/kasvtv/async-guards/issues"
   },
-  "homepage": "https://github.com/kasvtv/async-guard#readme"
+  "homepage": "https://github.com/kasvtv/async-guards#readme"
 }
