@@ -1,33 +1,36 @@
-function latest(fn) {
-	let count = 0;
+function latest(fn, prev={}) {
+	let invocations = prev.invocations || {current: 0};
 	
 	return function () {
-		count = count + 1;
-		const countAtStart = count;
+		try {
+			const invocationsAtStart = prev.invocationsAtStart || {current: ++invocations.current};
 
-		const result = fn.apply(this, arguments);
-	
-		if (result instanceof Promise) {
-			let cb, errorCb;
-			const proxyPromise = new Promise((res, rej) => {
-				cb = function(x) {
-					if (count === countAtStart) res(x);
-				};
-				errorCb = function(x) {
-					if (count === countAtStart) rej(x);
-				};
-			});
-	
-			result.then(cb);
-			result.catch(errorCb);
-			return proxyPromise;
-		}
+			const result = fn.apply(this, arguments);
 		
-		if (typeof result === "function") {
-			return latest(result);
-		}
+			if (result instanceof Promise) {
+				let cb, errorCb;
+				const proxyPromise = new Promise((res, rej) => {
+					cb = function(x) {
+						if (invocations.current === invocationsAtStart.current) res(x);
+					};
+					errorCb = function(x) {
+						if (invocations.current === invocationsAtStart.current) rej(x);
+					};
+				});
+		
+				result.then(cb);
+				result.catch(errorCb);
+				return proxyPromise;
+			}
+			
+			if (typeof result === "function") {
+				return latest(result, { invocations, invocationsAtStart });
+			}
 
-		return result;
+			return Promise.resolve(result);
+		} catch (e) {
+			return Promise.reject(e);
+		}
 	}
 }
 
