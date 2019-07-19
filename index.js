@@ -1,58 +1,33 @@
-function bindCb(fn, cb, errorCb, proxyPromise) {
-	return function() {
-		let result, error;
-
-		try {
-			result = fn.apply(this, arguments);
-		} catch (e) {
-			error = e;
-		}
-
-		if (error) {
-			errorCb(error);
-			throw error;
-		}
-		
-		if (result instanceof Promise) {
-			result.then(cb);
-			result.catch(errorCb);
-			return proxyPromise;
-		}
-		
-		if (typeof result === "function") {
-			return bindCb(result, cb, errorCb, proxyPromise);
-		}
-		
-		cb(result);
-		return result;
-	}
-}
-
 function latest(fn) {
 	let count = 0;
 	
 	return function () {
 		count = count + 1;
 		const countAtStart = count;
-		console.log("starting", {countAtStart, count})
 
-		let resolve, reject;
-		const proxyPromise = new Promise((res, rej) => {
-			resolve = res;
-			reject = rej;
-		});
+		const result = fn.apply(this, arguments);
+	
+		if (result instanceof Promise) {
+			let cb, errorCb;
+			const proxyPromise = new Promise((res, rej) => {
+				cb = function(x) {
+					if (count === countAtStart) res(x);
+				};
+				errorCb = function(x) {
+					if (count === countAtStart) rej(x);
+				};
+			});
+	
+			result.then(cb);
+			result.catch(errorCb);
+			return proxyPromise;
+		}
+		
+		if (typeof result === "function") {
+			return latest(result);
+		}
 
-		return bindCb(
-			fn,
-			x => {
-				console.log("done", {count, countAtStart});
-				if (count === countAtStart) resolve(x);
-			},
-			x => {
-				if (count === countAtStart) reject(x);
-			},
-			proxyPromise
-		).apply(this, arguments);
+		return result;
 	}
 }
 
