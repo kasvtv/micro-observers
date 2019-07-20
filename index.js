@@ -1,22 +1,35 @@
+const stub = function(){ return stub };
+stub.then = function() { return stub };
+stub.catch = function() { return stub };
+stub.finally = function() { return stub };
+
 function guard(fn, rules={}) {
 	let calls = rules.calls || {current: 0};
 	let lastCallFinished = rules.lastCallFinished || {current: 0};
+	let lastArgs = rules.lastArgs || {current: []};
 	
 	return function () {
-		try {
-			const callsAtStart = rules.callsAtStart || {current: ++calls.current};
+		if (
+			rules.first
+			|| (rules.distinct && rules.equalityFunction(lastArgs, arguments))
+			&& lastCallFinished.current !== calls.current
+		) return stub;
 
+		const callsAtStart = rules.callsAtStart || {current: ++calls.current};
+		lastArgs = arguments;
+
+		try {
 			const result = fn.apply(this, arguments);
 		
 			if (result instanceof Promise) {
 				let cb, errorCb;
 				const proxyPromise = new Promise((res, rej) => {
 					cb = function(x) {
-						if (rules.latest && calls.current !== callsAtStart.current) return;
+						if (rules.last && calls.current !== callsAtStart.current) return;
 						res(x);
 					};
 					errorCb = function(x) {
-						if (rules.latest && calls.current === callsAtStart.current) return;
+						if (rules.last && calls.current === callsAtStart.current) return;
 						rej(x);
 					};
 				});
@@ -29,20 +42,25 @@ function guard(fn, rules={}) {
 				return guard(result, Object.assign({
 					calls,
 					callsAtStart,
-					lastCallFinished
+					lastCallFinished,
+					lastArgs
 				}, rules));
 			}
 
-			lastCallFinished = callsAtStart;
+			lastCallFinished.current = callsAtStart;
 			return Promise.resolve(result);
+
 		} catch (e) {
+
+			lastArgs = [];
+			lastCallFinished.current = callsAtStart;
 			return Promise.reject(e);
 		}
 	}
 }
 
-function latest(fn) {
-	return guard(fn, { latest: true });
+function last(fn) {
+	return guard(fn, { last: true });
 }
 
 function first(fn) {
@@ -56,13 +74,13 @@ const fn = function(a) {
 		return [a,b];
     }
 };
-const latestFn = latest(fn)
+const lastFn = last(fn)
 
-const a = latestFn(1)
+const a = lastFn(1)
 const b = a(2)
 b.then(console.log)
 
 
-const c = latestFn(3)
+const c = lastFn(3)
 const d = c(4)
 d.then(console.log)
