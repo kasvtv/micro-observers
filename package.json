@@ -1,28 +1,40 @@
 {
   "name": "async-guards",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "",
   "main": "index.js",
-  "dependencies": {},
-  "devDependencies": {
-    "babel-eslint": "^10.0.2",
-    "eslint": "^6.0.1",
-    "eslint-plugin-import": "^2.18.1",
-    "eslint-plugin-jest": "^22.11.1",
-    "eslint-plugin-react": "^7.14.2",
-    "eslint-plugin-react-hooks": "^1.6.1"
-  },
+  "files": [
+    "**/!(*.test|*.conf*|*.setup|.*).js"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "es-check": "es-check es5 \"{utils,.}/!(*.test|*.conf*|*.setup|.*).js\" --quiet"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/kasvtv/async-guards.git"
   },
+  "keywords": [
+    "async",
+    "promise",
+    "latest",
+    "dedupe",
+    "deduplicate",
+    "functional",
+    "safe",
+    "rxjs"
+  ],
   "author": "Kas van 't Veer",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/kasvtv/async-guards/issues"
   },
-  "homepage": "https://github.com/kasvtv/async-guards#readme"
+  "homepage": "https://github.com/kasvtv/async-guards#readme",
+  "dependencies": {},
+  "devDependencies": {
+    "babel-eslint": "^10.0.2",
+    "eslint": "^6.0.1",
+    "eslint-plugin-import": "^2.18.1",
+    "eslint-plugin-jest": "^22.11.1"
+  }
 }

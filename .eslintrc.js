@@ -12,7 +12,7 @@ const path = require('path');
 	const browser = true;
 	const imports = true;
 	const node = true;
-	const babel = true;
+	const babel = false;
 
 	/* Frameworks and libraries: */
 	const react = false;
@@ -20,7 +20,7 @@ const path = require('path');
 	const jest = false;
 
 	/* Styling: */
-	const checkStyling = false;
+	const checkStyling = true;
 	const indentSetting = 'tab';
 
 /* End of user defined constants */
@@ -331,7 +331,7 @@ module.exports = {
 			'always',
 		],
 		'object-property-newline': [style, { allowAllPropertiesOnSameLine: true }],
-		'object-shorthand': style,
+		'object-shorthand': (babel || minEcmaVersion > 5) ? style : 'off',
 		'one-var': 'off',
 		'one-var-declaration-per-line': 'off',
 		'operator-assignment': 'off',
