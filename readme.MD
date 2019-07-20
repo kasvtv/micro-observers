@@ -29,7 +29,7 @@ Transform an asynchronous function such that it can't be called before one of it
 
 #### diagram
 
-![Size](https://raw.githubusercontent.com/kasvtv/async-guards/master/diagrams/first.svg)
+![Size](./diagrams/first.svg)
 
 #### arguments
 - **fn** *(function)*: Your async function
@@ -59,7 +59,7 @@ Transform an asynchronous function such that its resulting promise never resolve
 
 #### diagram
 
-![Size](https://raw.githubusercontent.com/kasvtv/async-guards/master/diagrams/last.svg)
+![Size](./diagrams/last.svg)
 
 #### arguments
 - **fn** *(function)*: Your async function
@@ -88,7 +88,7 @@ Transform an asynchronous function such that it can't be called before one of it
 
 #### diagram
 
-![Size](https://raw.githubusercontent.com/kasvtv/async-guards/master/diagrams/distinct.svg)
+![Size](./diagrams/distinct.svg)
 
 #### arguments
 - **fn** *(function)*: Your async function
