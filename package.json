@@ -1,14 +1,16 @@
 {
   "name": "async-guards",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "files": [
     "**/!(*.test|*.conf*|*.setup|.*).js"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "es-check": "es-check es5 \"{utils,.}/!(*.test|*.conf*|*.setup|.*).js\" --quiet"
+    "test": "npm run lint && npm run es-check && jest",
+    "lint": "cross-env NODE_ENV=production eslint \"{conditions,utils,.}/*.js\"",
+    "es-check": "es-check es5 \"{conditions,utils,.}/!(*.test|*.conf|.*).js\"",
+    "jest": "jest"
   },
   "repository": {
     "type": "git",
@@ -32,9 +34,11 @@
   "homepage": "https://github.com/kasvtv/async-guards#readme",
   "dependencies": {},
   "devDependencies": {
-    "babel-eslint": "^10.0.2",
+    "@types/jest": "^24.0.15",
+    "cross-env": "^5.2.0",
     "eslint": "^6.0.1",
     "eslint-plugin-import": "^2.18.1",
-    "eslint-plugin-jest": "^22.11.1"
+    "eslint-plugin-jest": "^22.11.1",
+    "jest": "^24.8.0"
   }
 }

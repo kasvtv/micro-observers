@@ -17,7 +17,7 @@ const path = require('path');
 	/* Frameworks and libraries: */
 	const react = false;
 	const jquery = false;
-	const jest = false;
+	const jest = true;
 
 	/* Styling: */
 	const checkStyling = true;
@@ -105,7 +105,7 @@ module.exports = {
 				objects: 'always-multiline',
 				imports: 'always-multiline',
 				exports: 'always-multiline',
-				functions: minEcmaVersion >= 6 ? 'always-multiline' : 'ignore',
+				functions: (babel || minEcmaVersion > 5) ? 'always-multiline' : 'never',
 			},
 		],
 		'comma-spacing': style,
@@ -331,7 +331,7 @@ module.exports = {
 			'always',
 		],
 		'object-property-newline': [style, { allowAllPropertiesOnSameLine: true }],
-		'object-shorthand': (babel || minEcmaVersion > 5) ? style : 'off',
+		'object-shorthand': [style, (babel || minEcmaVersion > 5) ? 'always' : 'never'],
 		'one-var': 'off',
 		'one-var-declaration-per-line': 'off',
 		'operator-assignment': 'off',

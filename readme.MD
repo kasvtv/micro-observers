@@ -13,7 +13,7 @@ Multiple asynchronous request don't return in deterministic order. *"Duh!"*, you
 
 - *Ever had the results of a search-on-type field be replaced by something you typed before, because an early request finished last?*
 
-This library is there to fix these issues forever. It provides you with three higher order functions that transform your asynchronous function to a safer alternative:
+This library is there to fix these issues forever. It provides you with several "guards". A guard is a higher order functions taking your asynchronous function, the success callback and the error callback and returns a safer version of your function, only calling the success or error callback in certain situations.
 
 ## Installation
 
@@ -23,112 +23,194 @@ npm install async-guards
 
 ## API
 
-### function **first**(fn) -> safeFn
+### function **first**(fn, onSuccess, onError) -> safeFn
 
-Transform an asynchronous function such that it can't be called before one of it's previous results resolve or reject. In case of a backend request, this means the request will never actually be sent.
+Guards an async function by only invoking it when it isn't currently running. In case of AJAX, this means the request will never actually be sent.
 
 #### diagram
 
-![Size](https://raw.githubusercontent.com/kasvtv/async-guards/master/diagrams/first.svg?sanitize=true)
+![First](https://raw.githubusercontent.com/kasvtv/async-guards/master/diagrams/first.svg?sanitize=true)
 
 #### arguments
 - **fn** *(function)*: Your async function
+- **onSuccess** *(function)*: A success callback, that you would normally pass to .then
+- **onError** *(function)*: An error callback, that you would normally pass to .catch
 
 #### returns
-- **safeFn** *(function)*: Your async function that won't be called if hasn't returned its last result yet.
+- **safeFn** *(function)*: Your guarded async function, linked to its handlers.
 
 #### example
 ```js
-import {first} from 'async-guards';
-import {refresh} from 'api/wherever';
+import first from 'async-guards/first';
+import { refresh, showResults, showError } from '******';
 
-const safeRefresh = first(refresh);
+const firstRefresh = first(
+	refresh,
+	showResults,
+	showError
+);
 
-safeRefresh()
-.then(response => {/* handle response */})
-.catch(response => {/* handle error */})
+firstRefresh();
 
 // Prevent refresh from being fired again before the previoius refresh has finished
-
 ```
 
 
-### function **last**(fn) -> safeFn
+### function **last**(fn, onSuccess, onError, onSupersede) -> safeFn
 
-Transform an asynchronous function such that its resulting promise never resolves or rejects when the function has been called again in the meantime. In case of a backend request, this request will still be made, just never handled in the frontend.
+Guards an async function by only invoking its success or error handlers if the function wasn't called in the meantime. In case of AJAX, the request will always be made, just not handled in the frontend if it has been superseded by another request before arriving.
 
 #### diagram
 
-![Size](https://raw.githubusercontent.com/kasvtv/async-guards/master/diagrams/last.svg?sanitize=true)
+![Last](https://raw.githubusercontent.com/kasvtv/async-guards/master/diagrams/last.svg?sanitize=true)
 
 #### arguments
 - **fn** *(function)*: Your async function
+- **onSuccess** *(function)*: A success callback, that you would normally pass to .then
+- **onError** *(function)*: An error callback, that you would normally pass to .catch
+- **onSupersede** *(function) (optional)*: Called every time a pending promise is superseded by a newly returned promise. Receives the old promise as its argument. Useful for cancelling xhr requests.
 
 #### returns
-- **safeFn** *(function)*: Your async function that will never resolve or reject if it has been called again in the meantime.
+- **safeFn** *(function)*: Your guarded async function, linked to its handlers.
 
 #### example
 ```js
-import {last} from 'async-guards';
-import {refresh} from 'api/wherever';
+import last from 'async-guards/last';
+import { refresh, showResults, showError } from '******';
 
-const safeRefresh = last(refresh);
+const lastRefresh = last(
+	refresh,
+	showResults,
+	showError
+);
 
-safeRefresh()
-.then(response => {/* handle response */})
-.catch(response => {/* handle error */})
+lastRefresh();
 
 // Only resolve the latest refreshed results
-
 ```
 
-### function **distinct**(fn, depth) -> safeFn
+### function **distinct**(fn, onSuccess, onError, onSupersede, depth) -> safeFn
 
-Transform an asynchronous function such that it can't be called before one of it's previous results resolve or reject unless it has new arguments. In case of a backend request, this means any request with new arguments will be made, but never handled in the frontend if another request with new arguments is made in the meantime.
+Guards an async function by only invoking it when arguments are different than its last call. In case of AJAX, this means any request with new arguments will be made, but if another request with new arguments is made in the meantime, it will never be handled in the frontend.
 
 #### diagram
 
-![Size](https://raw.githubusercontent.com/kasvtv/async-guards/master/diagrams/distinct.svg?sanitize=true)
+![Distinct](https://raw.githubusercontent.com/kasvtv/async-guards/master/diagrams/distinct.svg?sanitize=true)
 
 #### arguments
 - **fn** *(function)*: Your async function
-- **depth** *(number) (optional)*: How deep to check for equality. Default is 0, meaning shallow equality.
+- **onSuccess** *(function)*: A success callback, that you would normally pass to .then
+- **onError** *(function)*: An error callback, that you would normally pass to .catch
+- **onSupersede** *(function) (optional)*: Called every time a pending promise is superseded by a newly returned promise. Receives the old promise as its argument. Useful for cancelling xhr requests.
+- **depth** *(number) (optional)*: How many levels deep to check for equality. Default is 0, meaning shallow equality.
 
 #### returns
-- **safeFn** *(function)*: Your async function that won't be called if hasn't returned yet, unless it receives new arguments.
+- **safeFn** *(function)*: Your guarded async function, linked to its handlers.
 
 #### example
 ```js
-import {distinct} from 'async-guards';
-import {login} from 'api/wherever';
+import distinct from 'async-guards/distinct';
+import { login, startSession, showLoginError } from '******';
 
-const safeLogin = distinct(login);
+const safeLogin = distinct(
+	fetchUser,
+	startSession,
+	showLoginError
+);
 
 safeLogin(username, password)
-.then(response => {/* handle response */})
-.catch(response => {/* handle error */});
 
 // A login request that's still in progress can now only be refired if it has new credentials and will supersede the previous request
-
 ```
 
-### function **deeplyDistinct**(fn) -> safeFn
+### function **deeplyDistinct**(fn, success, error) -> safeFn
 
-Shortcut for distinct(fn, 1)
+Shortcut for distinct(fn, success, error, 1)
 
 ## FAQ
 
-- *What happens if a function from *first* or *distinct* is supressed? Will my app crash if I call then/catch/finally on that Promise?*  
-No, when the call is supressed, a dummy thenable is returned with then/catch/finally functions that don't actually do anything.
-
-- *What equality algorithm does **distinct** use?*  
-**Distinct** uses reference equality for every individual argument. That means that if you pass a single argument as an object, it won't work
+- *What happens if a function from *first* or *distinct* is supressed? Will my app crash if I curry or call then/catch/finally on the result?*  
+Your app won't crash. When the call is supressed, a dummy thenable is returned with then/catch/finally functions that don't actually do anything. This value can be imported (for equality checking) from `'async-guard/utils/stub'`
 
 - *What about partially applied functions like with redux thunks?*  
-Functions that immediately return other functions are supported. Beware though: a partially applied function counts as started as soon as the first function is called and isn't regarded as finished until at some point a resulting function's resulting promise is resolved.
+Functions that immediately return other functions are supported.
 
 - *What about functions that only sometimes return a Promise?*  
 All return values are always wrapped in a Promise.
 
 - *What if an error occurs in my transformed function?*  
 Then a rejected Promise holding the error is returned.
+
+- *What if halfway through my async function I decide to cancel it?*  
+You can return a cancel token that you can import from `'async-guard/cancel'`.
+
+## More examples
+
+### Redux thunks
+```js
+import distinct from 'async-guards/distinct';
+import { login } from 'api';
+import { userSuccess, userFailure } from 'store/user/actions';
+
+const safeLoginThunk = distinct(
+	(username, password) => async (dispatch) => {
+		try {
+			const token = await login(username, password);
+			return { dispatch, token };
+		} catch (error) {
+			return { dispatch, error };
+		}
+	},
+	({dispatch, token}) => dispatch(userSuccess(token)),
+	({dispatch, error}) => dispatch(userFailure(error))
+);
+```
+
+### Cancellation token
+```js
+import last from 'async-guards/last';
+import cancel from 'async-guards/cancel';
+import { refresh, showResults, showError } from '******';
+
+const lastRefresh = last(
+	async (currentData) => {
+		const data = await refresh();
+		if (currentData.equals(data)) return cancel;
+
+		return data;
+	},
+	showResults,
+	showError
+);
+```
+
+### Cancelling superseded requests with micro-xhr package
+```js
+/* lastMicroXhr.js */
+import last from 'async-guards/last';
+
+const lastMicroXhr = (fn, onSuccess, onError) => last(
+	fn,
+	onSuccess,
+	onError,
+	prom => prom.xhr.abort()
+);
+
+export default lastMicroXhr;
+
+/* index.js */
+import xhr from 'micro-xhr';
+import lastMicroXhr from './lastMicroXhr';
+import { showResults, showError } from '******';
+
+const lastRefresh = lastMicroXhr(
+	async (currentData) => {
+		const data = await xhr({ url: 'https://my.domain.com' });
+		if (currentData.equals(data)) return cancel;
+
+		return data;
+	},
+	showResults,
+	showError
+);
+```

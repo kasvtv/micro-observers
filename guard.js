@@ -1,47 +1,71 @@
-var Ruleset = require('./ruleset');
+var cancel = require('./cancel');
+var stub = require('./utils/stub');
 
-var stub = function() { return stub; };
-stub.then = function() { return stub; };
-stub.catch = function() { return stub; };
-stub.finally = function() { return stub; };
+function createGuard(fn, inputConf) {
+	var conf = Object.assign({}, inputConf);
 
-function guard(fn, rules) {
+	conf.metrics = conf.metrics || { lastProm: null };
+
+	conf.startCondition = conf.startCondition || returnTrue;
+	conf.endCondition = conf.endCondition || returnTrue;
+
+	conf.onSuccess = conf.onSuccess || identity;
+	conf.onError = conf.onError || identity;
+	conf.onSupersede = conf.onSupersede || identity;
+
 	return function() {
-		var ruleset = new Ruleset(rules);
+		var myConf = Object.assign({}, conf);
 
-		if (!ruleset.canStart(arguments)) return stub;
-
-		try {
-			var result = fn.apply(this, arguments);
-
-			if (typeof result === 'function') {
-				return guard(result, ruleset);
+		function finish(result, e, prom, myArgs) {
+			if (myConf.endCondition(myConf, myArgs, result, e, prom) && result !== cancel) {
+				if (e) myConf.onError(e);
+				else myConf.onSuccess(result);
 			}
 
-			if (result instanceof Promise) {
-				return new Promise(function(res, rej) {
-					result.then(
-						function(r) {
-							if (ruleset.canResolve(r)) res(r);
-						},
-						function(r) {
-							if (ruleset.canReject(r)) rej(r);
-						}
-					);
-				});
-			}
+			if (myConf.metrics.lastProm === prom) myConf.metrics.lastProm = null;
 
-			if (ruleset.canResolve(result)) {
-				return Promise.resolve(result);
-			}
-
-		} catch (e) {
-
-			if (ruleset.canReject(e)) {
-				return Promise.reject(e);
-			}
+			if (e) return Promise.reject(e);
+			return Promise.resolve(result);
 		}
+
+		if (myConf.startCondition(myConf, arguments)) {
+			var output;
+
+			try {
+				output = fn.apply(this, arguments);
+			} catch (e) {
+				return finish(null, e, null, arguments);
+			}
+
+			if (typeof output === 'function') {
+				return createGuard(output, myConf);
+			}
+
+			var lastProm = myConf.metrics.lastProm;
+			myConf.metrics.lastProm = null;
+			if (lastProm) myConf.onSupersede(lastProm);
+
+			if (output instanceof Promise) {
+				myConf.metrics.lastProm = output;
+				return output.then(
+					function(r) { return finish(r, null, output, arguments); }
+				).catch(
+					function(e) { return finish(null, e, output, arguments); }
+				);
+			}
+
+			return finish(output, null, null, arguments);
+		}
+
+		return stub;
 	};
 }
 
-module.exports = guard;
+function returnTrue() {
+	return true;
+}
+function identity(x) {
+	return x;
+}
+
+module.exports = createGuard;
