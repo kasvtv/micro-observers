@@ -13,7 +13,7 @@ Multiple asynchronous request don't return in deterministic order. *"Duh!"*, you
 
 - *Ever had the results of a search-on-type field be replaced by something you typed before, because an early request finished last?*
 
-This library is there to fix these issues forever. It provides you with several "guards". A guard is a higher order functions taking your asynchronous function, the success callback and the error callback and returns a safer version of your function, only calling the success or error callback in certain situations.
+This library is there to fix these issues forever. It provides you with several "guards". A guard is a higher order function taking your asynchronous function, the success callback and the error callback and returns a safer version of your function, only calling the success or error callback in certain situations.
 
 This package solves **some** of the problems RxJS can solve, but in a **much** simpler and smaller package.
 
