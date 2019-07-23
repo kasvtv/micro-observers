@@ -123,9 +123,10 @@ safeLogin(username, password)
 // A login request that's still in progress can now only be refired if it has new credentials and will supersede the previous request
 ```
 
-### function **deeplyDistinct**(fn, success, error) -> safeFn
 
-Shortcut for distinct(fn, success, error, 1)
+### function **deeplyDistinct**(fn, onSuccess, onError, onSupersede) -> safeFn
+
+Alias for distinct(fn, onSuccess, onError, onSupersede, 1)
 
 ## FAQ
 

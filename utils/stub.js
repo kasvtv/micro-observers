@@ -1,6 +1,6 @@
 function blockedByAsyncGuard() { return blockedByAsyncGuard; }
 
-blockedByAsyncGuard.then = function(fn) {
+blockedByAsyncGuard.then = function() {
 	return blockedByAsyncGuard;
 };
 
