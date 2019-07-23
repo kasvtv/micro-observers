@@ -15,11 +15,18 @@ Multiple asynchronous request don't return in deterministic order. *"Duh!"*, you
 
 This library is there to fix these issues forever. It provides you with several "guards". A guard is a higher order functions taking your asynchronous function, the success callback and the error callback and returns a safer version of your function, only calling the success or error callback in certain situations.
 
+<br/>
+<br/>
+
 ## Installation
 
 ```bash
 npm install async-guards
 ```
+
+<br/>
+<br/>
+
 
 ## API
 
@@ -55,6 +62,8 @@ firstRefresh();
 // Prevent refresh from being fired again before the previoius refresh has finished
 ```
 
+<br/>
+<br/>
 
 ### function **last**(fn, onSuccess, onError, onSupersede) -> safeFn
 
@@ -88,6 +97,9 @@ lastRefresh();
 
 // Only resolve the latest refreshed results
 ```
+
+<br/>
+<br/>
 
 ### function **distinct**(fn, onSuccess, onError, onSupersede, depth) -> safeFn
 
@@ -123,10 +135,15 @@ safeLogin(username, password)
 // A login request that's still in progress can now only be refired if it has new credentials and will supersede the previous request
 ```
 
+<br/>
+<br/>
 
 ### function **deeplyDistinct**(fn, onSuccess, onError, onSupersede) -> safeFn
 
 Alias for distinct(fn, onSuccess, onError, onSupersede, 1)
+
+<br/>
+<br/>
 
 ## FAQ
 
@@ -144,6 +161,9 @@ Then a rejected Promise holding the error is returned.
 
 - *What if halfway through my async function I decide to cancel it?*  
 You can return a cancel token that you can import from `'async-guard/cancel'`.
+
+<br/>
+<br/>
 
 ## More examples
 
