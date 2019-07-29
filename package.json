@@ -1,5 +1,5 @@
 {
-  "name": "async-guards",
+  "name": "micro-observers",
   "version": "1.0.2",
   "description": "",
   "main": "index.js",
@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kasvtv/async-guards.git"
+    "url": "git+https://github.com/kasvtv/micro-observers.git"
   },
   "keywords": [
     "async",
@@ -29,9 +29,9 @@
   "author": "Kas van 't Veer",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/kasvtv/async-guards/issues"
+    "url": "https://github.com/kasvtv/micro-observers/issues"
   },
-  "homepage": "https://github.com/kasvtv/async-guards#readme",
+  "homepage": "https://github.com/kasvtv/micro-observers#readme",
   "dependencies": {},
   "devDependencies": {
     "@types/jest": "^24.0.15",

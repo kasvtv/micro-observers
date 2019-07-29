@@ -1,11 +1,8 @@
-var createGuard = require('./guard');
+var createObserver = require('./observer');
 var isLast = require('./conditions/isLast');
 
-module.exports = function last(fn, onSuccess, onError, onSupersede) {
-	return createGuard(fn, {
+module.exports = function last(fn) {
+	return createObserver(fn, {
 		endCondition: isLast,
-		onSuccess: onSuccess,
-		onError: onError,
-		onSupersede: onSupersede,
 	});
 };

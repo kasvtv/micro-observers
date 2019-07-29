@@ -22,7 +22,8 @@ const createMockFn = (errorIdx = []) => {
 test('last', async () => {
 	const successVals = [];
 	const fn = createMockFn();
-	const lastFn = last(fn, (r) => successVals.push(r));
+	const lastFn = last(fn);
+	lastFn.subscribe({ success: (r) => successVals.push(r) });
 
 	await Promise.all([
 		lastFn(100, 1),
@@ -33,10 +34,25 @@ test('last', async () => {
 	expect(successVals).toEqual([3]);
 });
 
+test('last onsuperseded', async () => {
+	const supersedeVals = [];
+	const fn = createMockFn();
+	const lastFn = last(fn);
+	lastFn.subscribe({ supersede: (r) => supersedeVals.push(r) });
+
+	lastFn(100, 1);
+	lastFn(200, 2);
+	lastFn(150, 3);
+
+	expect(await Promise.all(supersedeVals))
+		.toEqual([1, 2]);
+});
+
 test('first', async () => {
 	const successVals = [];
 	const fn = createMockFn();
-	const lastFn = first(fn, (r) => successVals.push(r));
+	const lastFn = first(fn);
+	lastFn.subscribe({ success: (r) => successVals.push(r) });
 
 	const a = lastFn(150, 1);
 	const b = lastFn(200, 2);
@@ -52,7 +68,8 @@ test('first', async () => {
 test('distinct', async () => {
 	const vals = [];
 	const fn = createMockFn();
-	const lastFn = distinct(fn, (r) => vals.push(r));
+	const lastFn = distinct(fn);
+	lastFn.subscribe({ success: (r) => vals.push(r) });
 
 	const a = lastFn(150, 1);
 	const b = lastFn(150, 1);
@@ -69,7 +86,8 @@ test('distinct', async () => {
 test('cancel token', async () => {
 	const vals = [];
 	const fn = createMockFn();
-	const lastFn = last(fn, (r) => vals.push(r));
+	const lastFn = last(fn);
+	lastFn.subscribe({ success: (r) => vals.push(r) });
 
 	await lastFn(150, cancel);
 

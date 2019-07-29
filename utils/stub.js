@@ -1,17 +1,17 @@
-function blockedByAsyncGuard() { return blockedByAsyncGuard; }
+function blockedByMicroObserver() { return blockedByMicroObserver; }
 
-blockedByAsyncGuard.then = function() {
-	return blockedByAsyncGuard;
+blockedByMicroObserver.then = function() {
+	return blockedByMicroObserver;
 };
 
-blockedByAsyncGuard.catch = function(fn) {
-	fn(blockedByAsyncGuard);
-	return blockedByAsyncGuard;
+blockedByMicroObserver.catch = function(fn) {
+	fn(blockedByMicroObserver);
+	return blockedByMicroObserver;
 };
 
-blockedByAsyncGuard.finally = function(fn) {
-	fn(blockedByAsyncGuard);
-	return blockedByAsyncGuard;
+blockedByMicroObserver.finally = function(fn) {
+	fn(blockedByMicroObserver);
+	return blockedByMicroObserver;
 };
 
-module.exports = blockedByAsyncGuard;
+module.exports = blockedByMicroObserver;

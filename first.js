@@ -1,10 +1,8 @@
-var createGuard = require('./guard');
+var createObserver = require('./observer');
 var isIdle = require('./conditions/isIdle');
 
-module.exports = function first(fn, onSuccess, onError) {
-	return createGuard(fn, {
+module.exports = function first(fn) {
+	return createObserver(fn, {
 		startCondition: isIdle,
-		onSuccess: onSuccess,
-		onError: onError,
 	});
 };

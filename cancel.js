@@ -1,5 +1,5 @@
-function AsyncGuardCancelToken() {
-	this.asyncGuardCancelToken = true;
+function MicroObserverCancelToken() {
+	this.microObserverCancelToken = true;
 }
 
-module.exports = new AsyncGuardCancelToken();
+module.exports = new MicroObserverCancelToken();

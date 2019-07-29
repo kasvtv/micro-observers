@@ -1,19 +1,19 @@
-[![NPM version](https://img.shields.io/npm/v/async-guards.svg?style=flat)](https://www.npmjs.org/package/async-guards)
-[![Size](https://badgen.net/bundlephobia/minzip/async-guards)](https://bundlephobia.com/result?p=async-guards)
-[![Build Status](https://travis-ci.com/kasvtv/async-guards.svg?branch=master)](https://travis-ci.com/kasvtv/async-guards)
-[![Coverage Status](https://coveralls.io/repos/github/kasvtv/async-guards/badge.svg?branch=master)](https://coveralls.io/github/kasvtv/async-guards?branch=master)
-[![Dependency Status](https://david-dm.org/kasvtv/async-guards.svg)](https://david-dm.org/kasvtv/async-guards)
-[![Known Vulnerabilities](https://snyk.io/test/github/kasvtv/async-guards/badge.svg?targetFile=package.json)](https://snyk.io/test/github/kasvtv/async-guards?targetFile=package.json)
+[![NPM version](https://img.shields.io/npm/v/micro-observers.svg?style=flat)](https://www.npmjs.org/package/micro-observers)
+[![Size](https://badgen.net/bundlephobia/minzip/micro-observers)](https://bundlephobia.com/result?p=micro-observers)
+[![Build Status](https://travis-ci.com/kasvtv/micro-observers.svg?branch=master)](https://travis-ci.com/kasvtv/micro-observers)
+[![Coverage Status](https://coveralls.io/repos/github/kasvtv/micro-observers/badge.svg?branch=master)](https://coveralls.io/github/kasvtv/micro-observers?branch=master)
+[![Dependency Status](https://david-dm.org/kasvtv/micro-observers.svg)](https://david-dm.org/kasvtv/micro-observers)
+[![Known Vulnerabilities](https://snyk.io/test/github/kasvtv/micro-observers/badge.svg?targetFile=package.json)](https://snyk.io/test/github/kasvtv/micro-observers?targetFile=package.json)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 
-# async-guards
+# micro-observers
 Multiple asynchronous request don't return in deterministic order. *"Duh!"*, you might say. Well, lots of web applications don't take this into account, with weirdly behaving web applications as a result.
 
 - *Ever mashed a button on a webpage and then saw results flash in succession right after? Maybe the result that stayed wasn't from the last click?*
 
 - *Ever had the results of a search-on-type field be replaced by something you typed before, because an early request finished last?*
 
-This library is there to fix these issues forever. It provides you with several "guards". A guard is a higher order function taking your asynchronous function, the success callback and the error callback and returns a safer version of your function, only calling the success or error callback in certain situations.
+This library is there to fix these issues forever. It provides you with several higher order functions that take an asynchronous function and return a constrained version of that function, to which success or error callbacks can be attached that are only invoked in certain situations.
 
 This package solves **some** of the problems RxJS can solve, but in a **much** simpler and smaller package.
 
@@ -23,7 +23,7 @@ This package solves **some** of the problems RxJS can solve, but in a **much** s
 ## Installation
 
 ```bash
-npm install async-guards
+npm install micro-observers
 ```
 
 <br/>
@@ -32,32 +32,34 @@ npm install async-guards
 
 ## API
 
-### function **first**(fn, onSuccess, onError) -> safeFn
+### function **first**(fn) -> safeFn
 
-Guards an async function by only invoking it when it isn't currently running. In case of AJAX, this means the request will never actually be sent.
+Restricts an async function by only invoking its callbacks when it isn't currently running. In case of AJAX, this means the request will never actually be sent.
 
 #### diagram
 
-![First](https://raw.githubusercontent.com/kasvtv/async-guards/master/diagrams/first.svg?sanitize=true)
+![First](https://raw.githubusercontent.com/kasvtv/micro-observers/master/diagrams/first.svg?sanitize=true)
 
 #### arguments
 - **fn** *(function)*: Your async function
-- **onSuccess** *(function)*: A success callback, that you would normally pass to .then
-- **onError** *(function)*: An error callback, that you would normally pass to .catch
 
 #### returns
-- **safeFn** *(function)*: Your guarded async function, linked to its handlers.
+- **safeFn** *(function)*: Your restricted, observable async function.
+  - **subscribe** *(function(Object))*: Accepts an object containing a `success`, `error`, and/or `supersede` callback.      
+    **returns:**
+    - **unsubscribe** *(function)*: Unsubscribe all callbacks from the previous `subscribe` call
 
 #### example
 ```js
-import first from 'async-guards/first';
+import first from 'micro-observers/first';
 import { refresh, showResults, showError } from '******';
 
-const firstRefresh = first(
-	refresh,
-	showResults,
-	showError
-);
+const firstRefresh = first(refresh);
+
+firstRefresh.subscribe({
+	success: showResults,
+	error: showError,
+});
 
 firstRefresh();
 
@@ -67,33 +69,34 @@ firstRefresh();
 <br/>
 <br/>
 
-### function **last**(fn, onSuccess, onError, onSupersede) -> safeFn
+### function **last**(fn) -> safeFn
 
-Guards an async function by only invoking its success or error handlers if the function wasn't called in the meantime. In case of AJAX, the request will always be made, just not handled in the frontend if it has been superseded by another request before arriving.
+Restricts an async function by only invoking its success or error handlers if the function wasn't called in the meantime. In case of AJAX, the request will always be made, just not handled in the frontend if it has been superseded by another request before arriving.
 
 #### diagram
 
-![Last](https://raw.githubusercontent.com/kasvtv/async-guards/master/diagrams/last.svg?sanitize=true)
+![Last](https://raw.githubusercontent.com/kasvtv/micro-observers/master/diagrams/last.svg?sanitize=true)
 
 #### arguments
 - **fn** *(function)*: Your async function
-- **onSuccess** *(function)*: A success callback, that you would normally pass to .then
-- **onError** *(function)*: An error callback, that you would normally pass to .catch
-- **onSupersede** *(function) (optional)*: Called every time a pending promise is superseded by a newly returned promise. Receives the old promise as its argument. Useful for cancelling xhr requests.
 
 #### returns
-- **safeFn** *(function)*: Your guarded async function, linked to its handlers.
+- **safeFn** *(function)*: Your restricted, observable async function.
+  - **subscribe** *(function(Object))*: Accepts an object containing a `success`, `error`, and/or `supersede` callback.      
+    **returns:**
+    - **unsubscribe** *(function)*: Unsubscribe all callbacks from the previous `subscribe` call
 
 #### example
 ```js
-import last from 'async-guards/last';
+import last from 'micro-observers/last';
 import { refresh, showResults, showError } from '******';
 
-const lastRefresh = last(
-	refresh,
-	showResults,
-	showError
-);
+const lastRefresh = last(refresh);
+
+lastRefresh.subscribe({
+	success: showResults,
+	error: showError,
+});
 
 lastRefresh();
 
@@ -103,34 +106,35 @@ lastRefresh();
 <br/>
 <br/>
 
-### function **distinct**(fn, onSuccess, onError, onSupersede, depth) -> safeFn
+### function **distinct**(fn, depth) -> safeFn
 
-Guards an async function by only invoking it when arguments are different than its last call. In case of AJAX, this means any request with new arguments will be made, but if another request with new arguments is made in the meantime, it will never be handled in the frontend.
+Restricts an async function by only invoking it when arguments are different than its last call. In case of AJAX, this means any request with new arguments will be made, but if another request with new arguments is made in the meantime, it will never be handled in the frontend.
 
 #### diagram
 
-![Distinct](https://raw.githubusercontent.com/kasvtv/async-guards/master/diagrams/distinct.svg?sanitize=true)
+![Distinct](https://raw.githubusercontent.com/kasvtv/micro-observers/master/diagrams/distinct.svg?sanitize=true)
 
 #### arguments
 - **fn** *(function)*: Your async function
-- **onSuccess** *(function)*: A success callback, that you would normally pass to .then
-- **onError** *(function)*: An error callback, that you would normally pass to .catch
-- **onSupersede** *(function) (optional)*: Called every time a pending promise is superseded by a newly returned promise. Receives the old promise as its argument. Useful for cancelling xhr requests.
 - **depth** *(number) (optional)*: How many levels deep to check for equality. Default is 0, meaning shallow equality.
 
 #### returns
-- **safeFn** *(function)*: Your guarded async function, linked to its handlers.
+- **safeFn** *(function)*: Your restricted, observable async function.
+  - **subscribe** *(function(Object))*: Accepts an object containing a `success`, `error`, and/or `supersede` callback.      
+    **returns:**
+    - **unsubscribe** *(function)*: Unsubscribe all callbacks from the previous `subscribe` call
 
 #### example
 ```js
-import distinct from 'async-guards/distinct';
+import distinct from 'micro-observers/distinct';
 import { login, startSession, showLoginError } from '******';
 
-const safeLogin = distinct(
-	fetchUser,
-	startSession,
-	showLoginError
-);
+const safeLogin = distinct(fetchUser);
+
+lastRefresh.subscribe({
+	success: startSession,
+	error: showLoginError,
+});
 
 safeLogin(username, password)
 
@@ -140,9 +144,9 @@ safeLogin(username, password)
 <br/>
 <br/>
 
-### function **deeplyDistinct**(fn, onSuccess, onError, onSupersede) -> safeFn
+### function **deeplyDistinct**(fn) -> safeFn
 
-Alias for distinct(fn, onSuccess, onError, onSupersede, 1)
+Alias for distinct(fn, 1)
 
 <br/>
 <br/>
@@ -150,7 +154,7 @@ Alias for distinct(fn, onSuccess, onError, onSupersede, 1)
 ## FAQ
 
 - *What happens if a function from *first* or *distinct* is supressed? Will my app crash if I curry or call then/catch/finally on the result?*  
-Your app won't crash. When the call is supressed, a dummy thenable is returned with then/catch/finally functions that don't actually do anything. This value can be imported (for equality checking) from `'async-guard/utils/stub'`
+Your app won't crash. When the call is supressed, a dummy thenable is returned with then/catch/finally functions that don't actually do anything. This value can be imported (for equality checking) from `'micro-observers/utils/stub'`
 
 - *What about partially applied functions like with redux thunks?*  
 Functions that immediately return other functions are supported.
@@ -162,7 +166,7 @@ All return values are always wrapped in a Promise.
 Then a rejected Promise holding the error is returned.
 
 - *What if halfway through my async function I decide to cancel it?*  
-You can return a cancel token that you can import from `'async-guard/cancel'`.
+You can return a cancel token that you can import from `'micro-observers/cancel'`.
 
 <br/>
 <br/>
@@ -171,7 +175,7 @@ You can return a cancel token that you can import from `'async-guard/cancel'`.
 
 ### Redux thunks
 ```js
-import distinct from 'async-guards/distinct';
+import distinct from 'micro-observers/distinct';
 import { login } from 'api';
 import { userSuccess, userFailure } from 'store/user/actions';
 
@@ -184,15 +188,19 @@ const safeLoginThunk = distinct(
 			return { dispatch, error };
 		}
 	},
-	({dispatch, token}) => dispatch(userSuccess(token)),
-	({dispatch, error}) => dispatch(userFailure(error))
 );
+
+safeLoginThunk.subscribe({
+	success: ({dispatch, token}) => dispatch(userSuccess(token)),
+	error: ({dispatch, error}) => dispatch(userFailure(error)),
+});
+
 ```
 
 ### Cancellation token
 ```js
-import last from 'async-guards/last';
-import cancel from 'async-guards/cancel';
+import last from 'micro-observers/last';
+import cancel from 'micro-observers/cancel';
 import { refresh, showResults, showError } from '******';
 
 const lastRefresh = last(
@@ -201,22 +209,25 @@ const lastRefresh = last(
 		if (currentData.equals(data)) return cancel;
 
 		return data;
-	},
-	showResults,
-	showError
+	}
 );
+
+lastRefresh.subscribe({
+	success: showResults,
+	error: showError,
+});
+
 ```
 
 ### Cancelling superseded requests with micro-xhr package
 ```js
 /* lastMicroXhr.js */
-import last from 'async-guards/last';
+import last from 'micro-observers/last';
 
-const lastMicroXhr = (fn, onSuccess, onError) => last(
-	fn,
-	onSuccess,
-	onError,
-	prom => prom.xhr.abort()
+const lastMicroXhr = (fn) => {
+	const safeFn = last(fn);
+	safeFn.subscribe({ supersede: prom => prom.xhr.abort() })
+	return safeFn;
 );
 
 export default lastMicroXhr;
@@ -232,8 +243,11 @@ const lastRefresh = lastMicroXhr(
 		if (currentData.equals(data)) return cancel;
 
 		return data;
-	},
-	showResults,
-	showError
+	}
 );
+
+lastRefresh.subscribe({
+	success: showResults,
+	error: showError,
+});
 ```

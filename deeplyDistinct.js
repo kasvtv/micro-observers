@@ -1,5 +1,5 @@
 var distinct = require('./distinct');
 
-module.exports = function deeplyDistinct(fn, onSuccess, onError, onSupersede) {
-	return distinct(fn, onSuccess, onError, onSupersede, 1);
+module.exports = function deeplyDistinct(fn) {
+	return distinct(fn);
 };
